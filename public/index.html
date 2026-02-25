@@ -3,19 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>1-4-24 Dice Game</title>
+  <title>1-4-24</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <!-- Toast notifications -->
   <div id="toast-container"></div>
 
-  <!-- ══════════════════════════════════════════════════════════════
-       SCREEN: HOME
-  ══════════════════════════════════════════════════════════════ -->
+  <!-- ── HOME ─────────────────────────────────────────────── -->
   <div id="screen-home" class="screen active">
     <div class="screen-content narrow">
 
@@ -27,23 +24,22 @@
           <div class="logo-sep">·</div>
           <div class="logo-die">24</div>
         </div>
-        <p class="tagline">Roll a 1 &amp; a 4, max the rest.<br/>First to 24 takes the crown.</p>
+        <p class="tagline">Need a 1 and a 4.<br/>Max the rest. Highest wins.</p>
       </div>
 
       <div class="card">
         <div class="tabs">
-          <button class="tab active" data-tab="create">Create Game</button>
-          <button class="tab" data-tab="join">Join Game</button>
+          <button class="tab active" data-tab="create">Create</button>
+          <button class="tab" data-tab="join">Join</button>
         </div>
 
-        <!-- Create tab -->
         <div class="tab-content" id="tab-create">
           <div class="form-group">
             <label for="create-name">Your Name</label>
-            <input type="text" id="create-name" placeholder="e.g. Alex" maxlength="20" autocomplete="off" />
+            <input type="text" id="create-name" placeholder="Alex" maxlength="20" autocomplete="off" />
           </div>
           <div class="form-group">
-            <label>Players (2–4)</label>
+            <label>Players</label>
             <div class="count-selector">
               <button class="count-btn" data-count="2">2</button>
               <button class="count-btn active" data-count="3">3</button>
@@ -52,7 +48,7 @@
           </div>
           <div class="form-group">
             <label class="toggle-row">
-              <span>💰 Enable Wager</span>
+              <span>Wager</span>
               <label class="toggle">
                 <input type="checkbox" id="wager-toggle" />
                 <span class="slider"></span>
@@ -60,77 +56,76 @@
             </label>
             <div class="wager-detail hidden" id="wager-detail">
               <div class="wager-amount-row">
-                <label for="wager-amount">Amount per player</label>
+                <label for="wager-amount">Per player</label>
                 <div class="amount-input">
                   <span>$</span>
                   <input type="number" id="wager-amount" value="1" min="0.25" max="100" step="0.25" />
                 </div>
               </div>
-              <p class="hint">Players enter their Venmo @username in the lobby. The winner gets a pre-filled pay link — no app sign-in required.</p>
+              <p class="hint">Players add their Venmo @username in the lobby. Winner gets a pay link.</p>
             </div>
           </div>
-          <button class="btn btn-primary btn-full" id="btn-create">Create Game →</button>
+          <button class="btn btn-primary btn-full btn-lg" id="btn-create">Create Game</button>
         </div>
 
-        <!-- Join tab -->
         <div class="tab-content hidden" id="tab-join">
           <div class="form-group">
             <label for="join-name">Your Name</label>
-            <input type="text" id="join-name" placeholder="e.g. Jordan" maxlength="20" autocomplete="off" />
+            <input type="text" id="join-name" placeholder="Jordan" maxlength="20" autocomplete="off" />
           </div>
           <div class="form-group">
             <label for="join-code">Room Code</label>
             <input type="text" id="join-code" placeholder="6-letter code" maxlength="6" autocomplete="off"
-                   style="text-transform:uppercase;letter-spacing:0.15em;" />
+                   style="text-transform:uppercase;letter-spacing:.15em;" />
           </div>
-          <button class="btn btn-primary btn-full" id="btn-join">Join Game →</button>
+          <button class="btn btn-primary btn-full btn-lg" id="btn-join">Join Game</button>
         </div>
       </div>
 
       <p class="how-to-link" id="how-to-toggle">How to play ▾</p>
       <div class="how-to hidden" id="how-to">
         <ul>
-          <li>Each player gets <strong>3 rolls</strong> per turn.</li>
-          <li>Click dice to <strong>keep</strong> them between rolls.</li>
+          <li>Roll all 6 dice. You <strong>must keep at least 1</strong> die each roll.</li>
+          <li>Click a die to keep it — kept dice don't re-roll.</li>
+          <li>You can keep more than one die per roll.</li>
+          <li>Roll as many times as you like, then <strong>End Turn</strong>.</li>
           <li>You <strong>must</strong> have a <span class="badge-1">1</span> and a <span class="badge-4">4</span> to qualify.</li>
-          <li>Your score = sum of the other 4 dice (max <strong>24</strong>).</li>
+          <li>Score = sum of your other 4 dice. Max possible: <strong>24</strong>.</li>
           <li>Highest qualifying score wins the round.</li>
         </ul>
       </div>
+
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════════════
-       SCREEN: LOBBY
-  ══════════════════════════════════════════════════════════════ -->
+  <!-- ── LOBBY ─────────────────────────────────────────────── -->
   <div id="screen-lobby" class="screen">
     <div class="screen-content narrow">
-      <h2>Game Lobby</h2>
+      <h2>Lobby</h2>
 
       <div class="room-code-card">
         <div class="room-label">Room Code</div>
         <div class="room-code" id="lobby-code">——</div>
-        <button class="btn btn-outline btn-sm" id="btn-copy-link">📋 Copy Invite Link</button>
+        <button class="btn btn-outline btn-sm" id="btn-copy-link">Copy Invite Link</button>
       </div>
 
-      <!-- Pot + Venmo username (hidden unless wager enabled) -->
       <div id="wager-section" class="wager-section hidden">
         <div class="pot-display">
-          <div class="pot-label">PRIZE POT</div>
+          <div class="pot-label">Prize Pot</div>
           <div class="pot-amount" id="pot-amount">$0</div>
           <div class="pot-detail" id="pot-detail"></div>
         </div>
         <div class="venmo-setup">
           <label class="venmo-setup-label">
-            Your Venmo @username
+            Venmo username
             <span class="venmo-hint">so the winner gets paid</span>
           </label>
           <div class="venmo-input-row">
             <span class="at-prefix">@</span>
             <input type="text" id="venmo-username-input" placeholder="your-username" autocomplete="off" autocapitalize="none" />
-            <button class="btn btn-sm btn-primary" id="btn-save-venmo">Save</button>
+            <button class="btn btn-sm btn-secondary" id="btn-save-venmo">Save</button>
           </div>
-          <div class="venmo-saved hidden" id="venmo-saved">✅ Saved!</div>
+          <div class="venmo-saved hidden" id="venmo-saved">Saved</div>
         </div>
       </div>
 
@@ -139,60 +134,46 @@
       <p class="waiting-msg" id="waiting-msg">Waiting for players…</p>
 
       <div class="lobby-actions">
-        <button class="btn btn-primary btn-full hidden" id="btn-start">Start Game 🎲</button>
+        <button class="btn btn-primary btn-full btn-lg hidden" id="btn-start">Start Game</button>
         <button class="btn btn-ghost btn-full" id="btn-leave-lobby">Leave</button>
       </div>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════════════
-       SCREEN: GAME
-  ══════════════════════════════════════════════════════════════ -->
+  <!-- ── GAME ──────────────────────────────────────────────── -->
   <div id="screen-game" class="screen">
 
-    <!-- Top scoreboard bar -->
     <div class="game-header">
       <div class="scoreboard" id="game-scoreboard"></div>
       <div class="game-pot-badge hidden" id="game-pot-badge"></div>
     </div>
 
-    <!-- Main play area -->
     <div class="game-body">
 
-      <!-- Turn header -->
       <div class="turn-header" id="turn-header">
         <div class="turn-player" id="turn-player-label">—</div>
-        <div class="turn-rolls" id="turn-rolls">
-          <!-- roll pips injected here -->
-        </div>
+        <div class="turn-sub" id="turn-sub"></div>
       </div>
 
-      <!-- Dice + instructions -->
       <div class="dice-area">
-        <div class="dice-instruction" id="dice-instruction"></div>
-
+        <div class="dice-status" id="dice-status"></div>
         <div class="dice-container" id="dice-container"
              role="region" aria-label="Dice"
              ondragover="event.preventDefault()" ondrop="handleDrop(event)">
-          <!-- 6 dice injected by JS -->
         </div>
-
         <div class="kept-legend" id="kept-legend" style="display:none;">
           <span class="legend-kept">✓ Kept</span>
-          <span class="legend-key">★ Key die (1 or 4)</span>
+          <span class="legend-key">— Key die (1 or 4)</span>
         </div>
       </div>
 
-      <!-- Live score preview -->
       <div class="score-preview" id="score-preview" style="display:none;"></div>
 
-      <!-- Action buttons (my turn) -->
       <div class="game-actions" id="game-actions" style="display:none;">
-        <button class="btn btn-primary btn-roll" id="btn-roll">🎲 Roll Dice</button>
+        <button class="btn btn-primary btn-roll" id="btn-roll">Roll</button>
         <button class="btn btn-secondary" id="btn-end-turn" disabled>End Turn</button>
       </div>
 
-      <!-- Waiting message (other player's turn) -->
       <div class="waiting-turn" id="waiting-turn" style="display:none;">
         <div class="spinner"></div>
         <p id="waiting-turn-label"></p>
@@ -201,13 +182,11 @@
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════════════
-       SCREEN: RESULTS
-  ══════════════════════════════════════════════════════════════ -->
+  <!-- ── RESULTS ────────────────────────────────────────────── -->
   <div id="screen-results" class="screen">
     <div class="screen-content">
 
-      <div class="results-hero" id="results-hero">
+      <div class="results-hero">
         <div class="results-crown" id="results-crown"></div>
         <h2 id="results-title"></h2>
       </div>
@@ -219,12 +198,11 @@
         <div id="history-rows"></div>
       </div>
 
-      <!-- Settle-up card (injected by JS when wager active) -->
       <div id="settle-up-card"></div>
 
       <div class="results-actions">
-        <button class="btn btn-primary hidden" id="btn-play-again">🎲 Play Again</button>
-        <button class="btn btn-outline" id="btn-share-results">📤 Share Results</button>
+        <button class="btn btn-primary hidden" id="btn-play-again">Play Again</button>
+        <button class="btn btn-outline" id="btn-share-results">Share Results</button>
         <button class="btn btn-ghost" id="btn-new-game">New Game</button>
       </div>
 
