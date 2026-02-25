@@ -1,22 +1,22 @@
 require('dotenv').config();
 
 const express = require('express');
-const http = require('http');
+const http    = require('http');
 const { Server } = require('socket.io');
-const crypto = require('crypto');
-const path = require('path');
+const crypto  = require('crypto');
+const path    = require('path');
 
-const app = express();
+const app    = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: '*' } });
+const io     = new Server(server, { cors: { origin: '*' } });
 
-const PORT = process.env.PORT || 3000;
+const PORT     = process.env.PORT || 3000;
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ─── In-memory state ─────────────────────────────────────────────────────────
+// ─── In-memory state ──────────────────────────────────────────────────────────
 
 const games = new Map();
 
@@ -39,11 +39,11 @@ function calculateScore(dice) {
 
 function initTurn(game) {
   game.currentTurn = {
-    playerId: game.players[game.currentPlayerIndex].id,
-    dice: [null, null, null, null, null, null],
-    keptIndices: [],
-    rollsUsed: 0,
-    maxRolls: 3,
+    playerId:         game.players[game.currentPlayerIndex].id,
+    dice:             [null, null, null, null, null, null],
+    keptIndices:      [],
+    rollsUsed:        0,
+    keptSinceLastRoll: 0, // must be > 0 before rolling again (after 1st roll)
   };
 }
 
@@ -59,9 +59,9 @@ function endRound(game) {
   game.winner = winner ? winner.name : null;
 
   game.roundHistory.push({
-    number: game.roundHistory.length + 1,
+    number:  game.roundHistory.length + 1,
     results: game._turnResults.map(r => ({ ...r })),
-    winner: game.winner,
+    winner:  game.winner,
   });
 
   game._turnResults = [];
@@ -75,34 +75,32 @@ function pot(game) {
 
 function sanitize(game) {
   return {
-    id: game.id,
-    phase: game.phase,
-    maxPlayers: game.maxPlayers,
-    wagerEnabled: game.wagerEnabled,
-    wagerAmount: game.wagerAmount,
-    pot: pot(game),
-    players: game.players.map(p => ({
-      id: p.id,
-      name: p.name,
-      score: p.score,
-      qualified: p.qualified,
-      wins: p.wins,
-      isHost: p.isHost,
-      disconnected: p.disconnected,
-      venmoUsername: p.venmoUsername || null,
+    id:                 game.id,
+    phase:              game.phase,
+    maxPlayers:         game.maxPlayers,
+    wagerEnabled:       game.wagerEnabled,
+    wagerAmount:        game.wagerAmount,
+    pot:                pot(game),
+    players:            game.players.map(p => ({
+      id:              p.id,
+      name:            p.name,
+      score:           p.score,
+      qualified:       p.qualified,
+      wins:            p.wins,
+      isHost:          p.isHost,
+      disconnected:    p.disconnected,
+      venmoUsername:   p.venmoUsername || null,
     })),
     currentPlayerIndex: game.currentPlayerIndex,
-    currentTurn: game.currentTurn
-      ? {
-          playerId: game.currentTurn.playerId,
-          dice: game.currentTurn.dice,
-          keptIndices: game.currentTurn.keptIndices,
-          rollsUsed: game.currentTurn.rollsUsed,
-          maxRolls: game.currentTurn.maxRolls,
-        }
-      : null,
+    currentTurn:        game.currentTurn ? {
+      playerId:          game.currentTurn.playerId,
+      dice:              game.currentTurn.dice,
+      keptIndices:       game.currentTurn.keptIndices,
+      rollsUsed:         game.currentTurn.rollsUsed,
+      keptSinceLastRoll: game.currentTurn.keptSinceLastRoll,
+    } : null,
     roundHistory: game.roundHistory,
-    winner: game.winner,
+    winner:       game.winner,
   };
 }
 
@@ -122,26 +120,26 @@ io.on('connection', (socket) => {
     const gameId = crypto.randomBytes(3).toString('hex').toUpperCase();
 
     const game = {
-      id: gameId,
-      phase: 'waiting',
-      maxPlayers: Math.min(Math.max(2, Number(maxPlayers)), 4),
+      id:           gameId,
+      phase:        'waiting',
+      maxPlayers:   Math.min(Math.max(2, Number(maxPlayers)), 4),
       wagerEnabled: !!wagerEnabled,
-      wagerAmount: Math.max(0.01, Number(wagerAmount) || 1),
+      wagerAmount:  Math.max(0.01, Number(wagerAmount) || 1),
       players: [{
-        id: socket.id,
-        name: playerName.trim().slice(0, 20),
-        score: null,
-        qualified: false,
-        wins: 0,
-        isHost: true,
-        disconnected: false,
+        id:            socket.id,
+        name:          playerName.trim().slice(0, 20),
+        score:         null,
+        qualified:     false,
+        wins:          0,
+        isHost:        true,
+        disconnected:  false,
         venmoUsername: null,
       }],
       currentPlayerIndex: 0,
-      currentTurn: null,
-      roundHistory: [],
-      winner: null,
-      _turnResults: [],
+      currentTurn:        null,
+      roundHistory:       [],
+      winner:             null,
+      _turnResults:       [],
     };
 
     games.set(gameId, game);
@@ -154,7 +152,7 @@ io.on('connection', (socket) => {
 
   // ── Join game ────────────────────────────────────────────────────────────────
   socket.on('join_game', ({ gameId, playerName }) => {
-    const id = (gameId || '').trim().toUpperCase();
+    const id   = (gameId || '').trim().toUpperCase();
     const game = games.get(id);
 
     if (!game) return socket.emit('error', { message: 'Room not found. Check the code.' });
@@ -168,14 +166,8 @@ io.on('connection', (socket) => {
     }
 
     game.players.push({
-      id: socket.id,
-      name,
-      score: null,
-      qualified: false,
-      wins: 0,
-      isHost: false,
-      disconnected: false,
-      venmoUsername: null,
+      id: socket.id, name, score: null, qualified: false,
+      wins: 0, isHost: false, disconnected: false, venmoUsername: null,
     });
 
     socket.join(id);
@@ -211,12 +203,22 @@ io.on('connection', (socket) => {
 
     const turn = game.currentTurn;
     if (!turn || turn.playerId !== socket.id) return socket.emit('error', { message: 'Not your turn.' });
-    if (turn.rollsUsed >= turn.maxRolls) return socket.emit('error', { message: 'No rolls left — end your turn.' });
+
+    // After the first roll, must keep at least 1 die before rolling again
+    if (turn.rollsUsed > 0 && turn.keptSinceLastRoll === 0) {
+      return socket.emit('error', { message: 'Keep at least one die before rolling again.' });
+    }
+
+    // Can't roll if all dice are already kept
+    if (turn.keptIndices.length === 6) {
+      return socket.emit('error', { message: 'All dice are kept — end your turn.' });
+    }
 
     turn.dice = turn.dice.map((val, i) =>
       turn.keptIndices.includes(i) ? val : rollDie()
     );
     turn.rollsUsed++;
+    turn.keptSinceLastRoll = 0; // reset — player must keep ≥1 before next roll
 
     io.to(game.id).emit('game_state', sanitize(game));
   });
@@ -231,8 +233,13 @@ io.on('connection', (socket) => {
     if (turn.rollsUsed === 0 || turn.dice[dieIndex] === null) return;
 
     const idx = turn.keptIndices.indexOf(dieIndex);
-    if (idx >= 0) turn.keptIndices.splice(idx, 1);
-    else turn.keptIndices.push(dieIndex);
+    if (idx >= 0) {
+      turn.keptIndices.splice(idx, 1);
+      turn.keptSinceLastRoll = Math.max(0, turn.keptSinceLastRoll - 1);
+    } else {
+      turn.keptIndices.push(dieIndex);
+      turn.keptSinceLastRoll++;
+    }
 
     io.to(game.id).emit('game_state', sanitize(game));
   });
@@ -248,19 +255,15 @@ io.on('connection', (socket) => {
 
     const currentPlayer = game.players[game.currentPlayerIndex];
     const { qualified, score } = calculateScore(turn.dice);
-    currentPlayer.score = score;
+    currentPlayer.score     = score;
     currentPlayer.qualified = qualified;
 
     game._turnResults.push({
-      name: currentPlayer.name,
-      score,
-      qualified,
-      dice: [...turn.dice],
+      name: currentPlayer.name, score, qualified, dice: [...turn.dice],
     });
 
     game.currentPlayerIndex++;
 
-    // Skip disconnected players
     while (
       game.currentPlayerIndex < game.players.length &&
       game.players[game.currentPlayerIndex].disconnected
@@ -317,7 +320,6 @@ io.on('connection', (socket) => {
     io.to(game.id).emit('player_left', { name: player.name });
     io.to(game.id).emit('game_state', sanitize(game));
 
-    // Auto-advance if it was their turn
     if (game.phase === 'playing' && game.currentTurn?.playerId === socket.id) {
       game._turnResults.push({
         name: player.name, score: 0, qualified: false,
@@ -343,5 +345,5 @@ io.on('connection', (socket) => {
 // ─── Start ────────────────────────────────────────────────────────────────────
 
 server.listen(PORT, () => {
-  console.log(`🎲  1-4-24 Dice Game  →  ${BASE_URL}`);
+  console.log(`1-4-24 Dice Game  →  ${BASE_URL}`);
 });
