@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: 1-4-24-dice-game
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: BASE_URL
+        sync: false   # Set to your Render URL, e.g. https://1-4-24-dice-game.onrender.com
+      - key: VENMO_CLIENT_ID
+        sync: false   # Optional - see .env.example
+      - key: VENMO_CLIENT_SECRET
+        sync: false   # Optional - see .env.example
